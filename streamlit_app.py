@@ -377,29 +377,34 @@ elif section.startswith("3."):
     else:
         # Cluster counts
         cluster_counts = (
-            clusters["cluster"]
-            .value_counts()
-            .sort_index()
-            .reset_index()
-            .rename(columns={"index": "cluster", "cluster": "num_countries"})
-        )
+		clusters
+    		.groupby("cluster")
+    		.size()
+    		.reset_index(name="num_countries")
+    		.sort_values("cluster")
+	)
 
-        col1, col2 = st.columns(2)
+	col1, col2 = st.columns(2)
 
-        with col1:
-            fig_clusters = px.bar(
-                cluster_counts,
-                x="cluster",
-                y="num_countries",
-                color="cluster",
-                color_discrete_map=CLUSTER_COLORS,
-                labels={
-                    "cluster": "Cluster",
-                    "num_countries": "Number of countries"
-                },
-                title="Number of countries per cluster"
-            )
-            st.plotly_chart(fig_clusters, use_container_width=True)
+	with col1:
+    		cluster_counts["cluster_str"] = cluster_counts["cluster"].astype(str)
+
+    		fig_clusters = px.bar(
+			cluster_counts,
+        		x="cluster",
+       	 		y="num_countries",
+        		color="cluster_str",
+        		color_discrete_map={
+            			str(k): v for k, v in CLUSTER_COLORS.items()
+        		},
+        		labels={
+            			"cluster": "Cluster",
+            			"num_countries": "Number of countries",
+            			"cluster_str": ""
+        		},
+        		title="Number of countries per cluster"
+    		)
+    		st.plotly_chart(fig_clusters, use_container_width=True)
 
         with col2:
             st.markdown("**Countries and their clusters**")
