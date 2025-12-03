@@ -24,15 +24,55 @@ def load_data():
 canada_oecd, clusters = load_data()
 
 # ============================================
-# 3. COICOP category dictionary
+# 3. Dictionaries
 # ============================================
 CATEGORY_LABELS = {
     "CP01": "Food & Non-Alcoholic Beverages",
     "CP041": "Actual Rentals for Housing",
 }
 
-# Colors
-CAN_COLOR = "#CC0000"  # Canada red
+COUNTRY_NAMES = {
+    "AUT": "Austria",
+    "BEL": "Belgium",
+    "BGR": "Bulgaria",
+    "CAN": "Canada",
+    "CHE": "Switzerland",
+    "CHL": "Chile",
+    "COL": "Colombia",
+    "CRI": "Costa Rica",
+    "CZE": "Czech Republic",
+    "DEU": "Germany",
+    "DNK": "Denmark",
+    "EA20": "Euro Area (20 countries)",
+    "ESP": "Spain",
+    "EST": "Estonia",
+    "EU27_2020": "European Union (27 countries)",
+    "FIN": "Finland",
+    "FRA": "France",
+    "GBR": "United Kingdom",
+    "GRC": "Greece",
+    "HRV": "Croatia",
+    "HUN": "Hungary",
+    "IRL": "Ireland",
+    "ISL": "Iceland",
+    "ITA": "Italy",
+    "JPN": "Japan",
+    "LTU": "Lithuania",
+    "LUX": "Luxembourg",
+    "LVA": "Latvia",
+    "MEX": "Mexico",
+    "NLD": "Netherlands",
+    "NOR": "Norway",
+    "POL": "Poland",
+    "PRT": "Portugal",
+    "SVK": "Slovak Republic",
+    "SVN": "Slovenia",
+    "SWE": "Sweden",
+    "TUR": "Türkiye",
+    "USA": "United States",
+}
+
+CAN_COLOR = "#CC0000"   # Canada red
 OECD_COLOR = "#7EC8E3"  # light blue
 
 CLUSTER_COLORS = {
@@ -81,7 +121,6 @@ if not selected_categories:
     st.warning("Please select at least one COICOP category in the sidebar.")
     st.stop()
 
-# Filter once and reuse
 df_filtered = canada_oecd[
     (canada_oecd["category"].isin(selected_categories)) &
     (canada_oecd["year"] >= year_range[0]) &
@@ -89,7 +128,7 @@ df_filtered = canada_oecd[
 ].copy()
 
 # ============================================
-# 5. Overview box (always visible)
+# 5. Overview box
 # ============================================
 st.subheader("Dataset Overview")
 
@@ -121,7 +160,6 @@ if section.startswith("1."):
             st.warning(f"No CPI data available for {cat_name} in the selected year range.")
             continue
 
-        # Line chart – CPI Canada vs OECD
         fig = px.line(
             df_cat,
             x="year",
@@ -130,7 +168,6 @@ if section.startswith("1."):
             title=f"CPI – Canada vs OECD average ({cat_name})",
         )
 
-        # Force colors
         for trace in fig.data:
             if trace.name == "can_cpi":
                 trace.update(line=dict(color=CAN_COLOR))
@@ -141,7 +178,6 @@ if section.startswith("1."):
 
         st.plotly_chart(fig, use_container_width=True)
 
-        # Simple analytical insight using latest year in range
         latest_year = int(df_cat["year"].max())
         latest_row = df_cat[df_cat["year"] == latest_year].iloc[0]
         can_val = latest_row["can_cpi"]
@@ -158,10 +194,11 @@ if section.startswith("1."):
             else:
                 relation = "very close to"
 
+            # 2 decimals here
             insight_text = (
                 f"In **{latest_year}**, Canada's CPI for **{cat_name}** is "
                 f"**{relation}** the OECD average "
-                f"({can_val:.1f}% vs {oecd_val:.1f}%)."
+                f"({can_val:.2f}% vs {oecd_val:.2f}%)."
             )
 
         st.markdown(f"**Key finding – {cat_name}:** {insight_text}")
@@ -183,7 +220,7 @@ elif section.startswith("2."):
     if df_last.empty:
         st.warning("No expenditure data available for the selected year range.")
     else:
-        # ---------- Expenditure share ----------
+        # ---------- Expenditure share (gráfico) ----------
         share_rows = []
         for _, row in df_last.iterrows():
             cat = row["category"]
@@ -210,7 +247,7 @@ elif section.startswith("2."):
         )
         st.plotly_chart(fig_share, use_container_width=True)
 
-        # ---------- Expenditure growth ----------
+        # ---------- Expenditure growth (gráfico) ----------
         growth_rows = []
         for _, row in df_last.iterrows():
             cat = row["category"]
@@ -237,9 +274,20 @@ elif section.startswith("2."):
         )
         st.plotly_chart(fig_growth, use_container_width=True)
 
-        # ---------- Text insights ----------
+        # ---------- Key findings (agrupados por categoría, sin repeticiones) ----------
+        summary_last = (
+            df_last
+            .groupby("category", as_index=False)
+            .agg(
+                can_exp_share=("can_exp_share", "mean"),
+                oecd_exp_share=("oecd_exp_share", "mean"),
+                can_exp_growth=("can_exp_growth", "mean"),
+                oecd_exp_growth=("oecd_exp_growth", "mean"),
+            )
+        )
+
         lines = []
-        for _, row in df_last.iterrows():
+        for _, row in summary_last.iterrows():
             cat = row["category"]
             cat_name = CATEGORY_LABELS.get(cat, cat)
 
@@ -248,7 +296,6 @@ elif section.startswith("2."):
             growth_can = row["can_exp_growth"]
             growth_oecd = row["oecd_exp_growth"]
 
-            # Relation for share
             if pd.isna(share_can) or pd.isna(share_oecd):
                 share_rel = "cannot be compared due to missing data"
             elif share_can > share_oecd:
@@ -258,7 +305,6 @@ elif section.startswith("2."):
             else:
                 share_rel = "a **similar expenditure share** to the OECD average"
 
-            # Relation for growth
             if pd.isna(growth_can) or pd.isna(growth_oecd):
                 growth_rel = "growth cannot be compared due to missing data"
             elif growth_can > growth_oecd:
@@ -290,8 +336,8 @@ elif section.startswith("2."):
 elif section.startswith("3."):
     st.header("3. Clustering Results – Countries Similar to Canada")
 
-    # Prepare cluster info
     clusters["cluster_str"] = clusters["cluster"].astype(str)
+    clusters["country_name"] = clusters["country"].map(COUNTRY_NAMES).fillna(clusters["country"])
 
     cluster_counts = (
         clusters.groupby("cluster")
@@ -312,11 +358,16 @@ elif section.startswith("3."):
     )
     st.plotly_chart(fig_clusters, use_container_width=True)
 
-    # Canada cluster + peers
     canada_cluster_row = clusters[clusters["country"] == "CAN"]
     if not canada_cluster_row.empty:
         canada_cluster = int(canada_cluster_row["cluster"].iloc[0])
-        peers = clusters[clusters["cluster"] == canada_cluster]["country"].tolist()
+
+        peers_df = clusters[clusters["cluster"] == canada_cluster].copy()
+        peers_df["label"] = peers_df.apply(
+            lambda r: f"{COUNTRY_NAMES.get(r['country'], r['country'])} ({r['country']})",
+            axis=1
+        )
+        peers = peers_df["label"].tolist()
 
         st.markdown(
             f"Canada belongs to **cluster {canada_cluster}**, "
@@ -329,7 +380,11 @@ elif section.startswith("3."):
         st.warning("Canada is not present in the clustering results.")
 
     st.subheader("Cluster Membership by Country")
-    st.dataframe(clusters.sort_values("cluster").reset_index(drop=True))
+    st.dataframe(
+        clusters[["country_name", "country", "cluster"]]
+        .sort_values("cluster")
+        .reset_index(drop=True)
+    )
 
     st.info(
         "Clusters group countries with similar inflation and expenditure patterns for the "
