@@ -103,10 +103,9 @@ for cat in selected_categories:
 
     st.markdown(
     f"""
-**Insight – {cat_name}:**
-"""
-)
-
+    **Insight – {cat_name}:**
+    """
+    )
 
 # ============================================
 # 6. Section: Clustering Results
@@ -137,9 +136,9 @@ fig_clusters = px.bar(
 st.plotly_chart(fig_clusters, use_container_width=True)
 
 st.markdown(
-    "**Insight:**  
-    Clusters group countries with similar inflation patterns and expenditure structures between 2020–2024.  
-    Canada belongs to one of the main clusters with several European economies."
+    """
+**Insight:**
+"""
 )
 
 # ============================================
@@ -153,5 +152,6 @@ st.dataframe(clusters.sort_values("cluster").reset_index(drop=True))
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
+
 
 
