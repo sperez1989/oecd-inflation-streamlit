@@ -67,8 +67,11 @@ st.subheader("Dataset Overview")
 num_countries = clusters["country"].nunique()
 
 st.info(
-    f"### OECD countries included: **{num_countries}**  
-    Data covers **2020–2024**, using CPI growth and expenditure shares from the OECD COICOP database."
+    f"""
+### OECD countries included: **{num_countries}**
+
+Data covers **2020–2024**, using CPI growth and expenditure shares from the OECD COICOP database.
+"""
 )
 
 # ============================================
@@ -148,3 +151,4 @@ st.dataframe(clusters.sort_values("cluster").reset_index(drop=True))
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
+
