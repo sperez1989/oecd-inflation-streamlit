@@ -102,9 +102,11 @@ for cat in selected_categories:
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown(
-        f"**Insight – {cat_name}:**  
-        Compare the CPI growth pattern of Canada against the OECD average. Look for years with higher divergence to understand inflation pressure on households."
-    )
+    f"""
+**Insight – {cat_name}:**
+"""
+)
+
 
 # ============================================
 # 6. Section: Clustering Results
@@ -151,4 +153,5 @@ st.dataframe(clusters.sort_values("cluster").reset_index(drop=True))
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
+
 
