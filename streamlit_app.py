@@ -428,17 +428,24 @@ elif section.startswith("4."):
             if df_cat.empty:
                 continue
 
+            df_cat["year_str"] = df_cat["year"].astype(int).astype(str)
+
             fig = px.line(
                 df_cat,
-                x="year",
+                x="year_str",
                 y="avg_cpi",
                 color="group",
-                labels={"avg_cpi": "CPI annual average (%)", "year": "Year", "group": "Group"},
+                labels={
+                    "avg_cpi": "CPI annual average (%)",
+                    "year_str": "Year",
+                    "group": "Group"
+                },
                 title=f"CPI – Canada vs Clusters ({cat_name})",
                 color_discrete_map=GROUP_COLORS,
             )
             st.plotly_chart(fig, use_container_width=True)
 
+            # seguimos usando el año numérico para los cálculos
             latest_year = int(df_cat["year"].max())
             latest = df_cat[df_cat["year"] == latest_year].copy()
 
@@ -560,6 +567,7 @@ elif section.startswith("5."):
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
+
 
 
 
