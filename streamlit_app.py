@@ -166,6 +166,7 @@ if section.startswith("1."):
     st.header("1. Inflation (CPI) – Canada vs OECD")
 
     for cat in selected_categories:
+        # nombre legible de la categoría
         cat_name = CATEGORY_LABELS.get(cat, cat)
 
         df_cat = df_filtered[df_filtered["category"] == cat].copy()
@@ -173,6 +174,8 @@ if section.startswith("1."):
             st.warning(f"No CPI data available for {cat_name} in the selected year range.")
             continue
 
+        # ordenar por año y usarlo como texto para el eje X
+        df_cat = df_cat.sort_values("year")
         df_cat["year_str"] = df_cat["year"].astype(int).astype(str)
 
         fig = px.line(
@@ -187,6 +190,7 @@ if section.startswith("1."):
             title=f"CPI – Canada vs OECD average ({cat_name})",
         )
 
+        # colores y nombres de las series
         for trace in fig.data:
             if trace.name == "can_cpi":
                 trace.update(line=dict(color=CAN_COLOR))
@@ -194,14 +198,6 @@ if section.startswith("1."):
             elif trace.name == "oecd_cpi":
                 trace.update(line=dict(color=OECD_COLOR))
                 trace.name = "OECD average"
-
-        fig.update_xaxes(
-            type="category",
-            categoryorder="array",
-            categoryarray=years_sorted,
-            tickmode="array",
-            tickvals=years_sorted
-        )
 
         st.plotly_chart(fig, use_container_width=True)
 
