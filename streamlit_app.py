@@ -166,20 +166,21 @@ if section.startswith("1."):
     st.header("1. Inflation (CPI) – Canada vs OECD")
 
     for cat in selected_categories:
-        cat_name = CATEGORY_LABELS.get(cat, cat)
         df_cat = df_filtered[df_filtered["category"] == cat].copy()
 
-        if df_cat.empty:
-            st.warning(f"No CPI data available for {cat_name} in the selected year range.")
-            continue
+if df_cat.empty:
+    st.warning(f"No CPI data available for {cat_name} in the selected year range.")
+    continue
 
-        fig = px.line(
-            df_cat,
-            x="year",
-            y=["can_cpi", "oecd_cpi"],
-            labels={"value": "CPI annual average (%)", "year": "Year", "variable": ""},
-            title=f"CPI – Canada vs OECD average ({cat_name})",
-        )
+df_cat["year_str"] = df_cat["year"].astype(int).astype(str)
+
+fig = px.line(
+    df_cat,
+    x="year_str",
+    y=["can_cpi", "oecd_cpi"],
+    labels={"value": "CPI annual average (%)", "year_str": "Year", "variable": ""},
+    title=f"CPI – Canada vs OECD average ({cat_name})",
+)
 
         for trace in fig.data:
             if trace.name == "can_cpi":
@@ -559,3 +560,4 @@ elif section.startswith("5."):
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
+
