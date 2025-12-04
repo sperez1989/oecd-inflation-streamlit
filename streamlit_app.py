@@ -166,8 +166,10 @@ if section.startswith("1."):
     st.header("1. Inflation (CPI) – Canada vs OECD")
 
     for cat in selected_categories:
-        df_cat = df_filtered[df_filtered["category"] == cat].copy()
+        # nombre legible de la categoría
+        cat_name = CATEGORY_LABELS.get(cat, cat)
 
+        df_cat = df_filtered[df_filtered["category"] == cat].copy()
         if df_cat.empty:
             st.warning(f"No CPI data available for {cat_name} in the selected year range.")
             continue
@@ -178,9 +180,13 @@ if section.startswith("1."):
             df_cat,
             x="year_str",
             y=["can_cpi", "oecd_cpi"],
-            labels={"value": "CPI annual average (%)", "year_str": "Year", "variable": ""},
+            labels={
+                "value": "CPI annual average (%)",
+                "year_str": "Year",
+                "variable": ""
+            },
             title=f"CPI – Canada vs OECD average ({cat_name})",
-        )        
+        )
 
         for trace in fig.data:
             if trace.name == "can_cpi":
@@ -192,14 +198,17 @@ if section.startswith("1."):
 
         st.plotly_chart(fig, use_container_width=True)
 
+        # ---- Key finding ----
         latest_year = int(df_cat["year"].max())
         latest_row = df_cat[df_cat["year"] == latest_year].iloc[0]
         can_val = latest_row["can_cpi"]
         oecd_val = latest_row["oecd_cpi"]
 
         if pd.isna(can_val) or pd.isna(oecd_val):
-            relation = "cannot be directly compared due to missing data"
-            insight_text = f"In {latest_year}, CPI for {cat_name} {relation}."
+            insight_text = (
+                f"In {latest_year}, CPI for {cat_name} cannot be directly compared "
+                f"because of missing data."
+            )
         else:
             if can_val > oecd_val:
                 relation = "above"
@@ -217,7 +226,7 @@ if section.startswith("1."):
         st.markdown(f"**Key finding – {cat_name}:** {insight_text}")
 
     st.info(
-        "Overall, these CPI patterns highlight where inflationary pressure in Canada is "
+        "Overall, these CPI patterns highlight where inflation pressure in Canada is "
         "stronger or weaker than the OECD benchmark for the selected spending categories."
     )
 
@@ -567,6 +576,7 @@ elif section.startswith("5."):
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
+
 
 
 
