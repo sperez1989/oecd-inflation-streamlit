@@ -173,7 +173,6 @@ if section.startswith("1."):
             st.warning(f"No CPI data available for {cat_name} in the selected year range.")
             continue
 
-        # año como texto para el eje X
         df_cat["year_str"] = df_cat["year"].astype(int).astype(str)
 
         fig = px.line(
@@ -188,7 +187,6 @@ if section.startswith("1."):
             title=f"CPI – Canada vs OECD average ({cat_name})",
         )
 
-        # Colores fijos
         for trace in fig.data:
             if trace.name == "can_cpi":
                 trace.update(line=dict(color=CAN_COLOR))
@@ -197,11 +195,12 @@ if section.startswith("1."):
                 trace.update(line=dict(color=OECD_COLOR))
                 trace.name = "OECD average"
 
-        # Eje X categórico (evita 2020.5, 2021.5, etc.)
         fig.update_xaxes(
             type="category",
+            categoryorder="array",
+            categoryarray=years_sorted,
             tickmode="array",
-            tickvals=sorted(df_cat["year_str"].unique())
+            tickvals=years_sorted
         )
 
         st.plotly_chart(fig, use_container_width=True)
@@ -470,7 +469,6 @@ elif section.startswith("4."):
 
             st.plotly_chart(fig, use_container_width=True)
 
-            # seguimos usando el año numérico para los cálculos
             latest_year = int(df_cat["year"].max())
             latest = df_cat[df_cat["year"] == latest_year].copy()
 
@@ -593,4 +591,3 @@ elif section.startswith("5."):
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
-
