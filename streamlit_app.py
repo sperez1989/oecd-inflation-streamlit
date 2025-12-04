@@ -166,7 +166,6 @@ if section.startswith("1."):
     st.header("1. Inflation (CPI) – Canada vs OECD")
 
     for cat in selected_categories:
-        # nombre legible de la categoría
         cat_name = CATEGORY_LABELS.get(cat, cat)
 
         df_cat = df_filtered[df_filtered["category"] == cat].copy()
@@ -174,7 +173,7 @@ if section.startswith("1."):
             st.warning(f"No CPI data available for {cat_name} in the selected year range.")
             continue
 
-        # ordenar por año y usarlo como texto para el eje X
+        # ---- Ordenar y convertir año a string ----
         df_cat = df_cat.sort_values("year")
         df_cat["year_str"] = df_cat["year"].astype(int).astype(str)
 
@@ -190,7 +189,10 @@ if section.startswith("1."):
             title=f"CPI – Canada vs OECD average ({cat_name})",
         )
 
-        # colores y nombres de las series
+        # 🔥 Forzar eje X a categoría (solución definitiva)
+        fig.update_xaxes(type="category")
+
+        # Colores y nombres
         for trace in fig.data:
             if trace.name == "can_cpi":
                 trace.update(line=dict(color=CAN_COLOR))
@@ -209,8 +211,8 @@ if section.startswith("1."):
 
         if pd.isna(can_val) or pd.isna(oecd_val):
             insight_text = (
-                f"In {latest_year}, CPI for {cat_name} cannot be directly compared "
-                f"because of missing data."
+                f"In {latest_year}, CPI for {cat_name} cannot be directly compared due "
+                f"to missing data."
             )
         else:
             if can_val > oecd_val:
