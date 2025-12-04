@@ -576,8 +576,3 @@ elif section.startswith("5."):
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
-
-
-
-
-
