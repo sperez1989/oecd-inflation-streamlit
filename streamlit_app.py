@@ -166,7 +166,6 @@ if section.startswith("1."):
     st.header("1. Inflation (CPI) – Canada vs OECD")
 
     for cat in selected_categories:
-        # nombre legible de la categoría
         cat_name = CATEGORY_LABELS.get(cat, cat)
 
         df_cat = df_filtered[df_filtered["category"] == cat].copy()
@@ -174,6 +173,7 @@ if section.startswith("1."):
             st.warning(f"No CPI data available for {cat_name} in the selected year range.")
             continue
 
+        # año como texto para el eje X
         df_cat["year_str"] = df_cat["year"].astype(int).astype(str)
 
         fig = px.line(
@@ -188,6 +188,7 @@ if section.startswith("1."):
             title=f"CPI – Canada vs OECD average ({cat_name})",
         )
 
+        # Colores fijos
         for trace in fig.data:
             if trace.name == "can_cpi":
                 trace.update(line=dict(color=CAN_COLOR))
@@ -195,6 +196,13 @@ if section.startswith("1."):
             elif trace.name == "oecd_cpi":
                 trace.update(line=dict(color=OECD_COLOR))
                 trace.name = "OECD average"
+
+        # Eje X categórico (evita 2020.5, 2021.5, etc.)
+        fig.update_xaxes(
+            type="category",
+            tickmode="array",
+            tickvals=sorted(df_cat["year_str"].unique())
+        )
 
         st.plotly_chart(fig, use_container_width=True)
 
@@ -437,6 +445,7 @@ elif section.startswith("4."):
             if df_cat.empty:
                 continue
 
+            # año como texto
             df_cat["year_str"] = df_cat["year"].astype(int).astype(str)
 
             fig = px.line(
@@ -452,6 +461,13 @@ elif section.startswith("4."):
                 title=f"CPI – Canada vs Clusters ({cat_name})",
                 color_discrete_map=GROUP_COLORS,
             )
+
+            fig.update_xaxes(
+                type="category",
+                tickmode="array",
+                tickvals=sorted(df_cat["year_str"].unique())
+            )
+
             st.plotly_chart(fig, use_container_width=True)
 
             # seguimos usando el año numérico para los cálculos
@@ -492,6 +508,7 @@ elif section.startswith("5."):
 
     exp_filtered = cluster_exp[
         (cluster_exp["category"].isin(selected_categories)) &
+
         (cluster_exp["year"] >= year_range[0]) &
         (cluster_exp["year"] <= year_range[1])
     ].copy()
@@ -576,3 +593,4 @@ elif section.startswith("5."):
 # ============================================
 st.markdown("---")
 st.markdown("© 2025 – OECD Inflation Study • Streamlit Dashboard")
+
